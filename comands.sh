@@ -1,10 +1,13 @@
-
+#Tener en cuenta como tienes el python en tu computador
+python3
+python
+py
 #1 crear entorno
-python3 -m venv venv
+python3 -m venv <nombreEntorno>
 
 
 #2 iniciar entorno
-source venv/bin/activate
+source <nombreEntorno>/bin/activate
 
 # 3
 pip install django
