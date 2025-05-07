@@ -1,11 +1,178 @@
 from rest_framework import viewsets
 from .models import Producto, Categoria
 from .serializers import ProductoSerializer, CategoriaSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
 
+    @swagger_auto_schema(
+        operation_description="Listar todas las categorías disponibles.",
+        responses={
+            200: openapi.Response(
+                description="Lista de categorías obtenida correctamente.",
+                schema=CategoriaSerializer(many=True)
+            )
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Crear una nueva categoría.",
+        responses={
+            201: openapi.Response(
+                description="Categoría creada correctamente.",
+                schema=CategoriaSerializer
+            ),
+            400: "Solicitud incorrecta. Verifique los datos enviados.",
+        }
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Obtener una categoría específica por su ID.",
+        responses={
+            200: openapi.Response(
+                description="Categoría obtenida correctamente.",
+                schema=CategoriaSerializer
+            ),
+            404: "No encontrado. La categoría con el ID especificado no existe.",
+        }
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Actualizar una categoría específica por su ID.",
+        responses={
+            200: openapi.Response(
+                description="Categoría actualizada correctamente.",
+                schema=CategoriaSerializer
+            ),
+            400: "Solicitud incorrecta. Verifique los datos enviados.",
+            404: "No encontrado. La categoría con el ID especificado no existe.",
+        }
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Actualizar parcialmente una categoría específica por su ID.",
+        responses={
+            200: openapi.Response(
+                description="Categoría actualizada correctamente.",
+                schema=CategoriaSerializer
+            ),
+            400: "Solicitud incorrecta. Verifique los datos enviados.",
+            404: "No encontrado. La categoría con el ID especificado no existe.",
+        }   
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Eliminar una categoría específica por su ID.",
+        responses={
+            204: "Categoría eliminada correctamente.",
+            404: "No encontrado. La categoría con el ID especificado no existe.",
+        }
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+    
+####### IMPORTANTE: Auntenticación JWT ########
+# Para habilitar la autenticación JWT, descomentar: #
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
+    #permission_classes = [IsAuthenticated]
+    #authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        operation_description="Listar todos los productos disponibles (requiere autenticación JWT).",
+        responses={
+            200: openapi.Response(
+                description="Lista de productos obtenida correctamente.",
+                schema=ProductoSerializer(many=True)
+            ),
+            401: "No autorizado. El token JWT no está presente o es inválido.",
+        }
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Crear un nuevo producto (requiere autenticación JWT).",
+        
+        responses={
+            201: openapi.Response(
+                description="Producto creado correctamente.",
+                schema=ProductoSerializer
+            ),
+            400: "Solicitud incorrecta. Verifique los datos enviados.",
+            401: "No autorizado. El token JWT no está presente o es inválido.",
+        }
+    )
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Obtener un producto específico por su ID (requiere autenticación JWT).",
+        responses={
+            200: openapi.Response(
+                description="Producto obtenido correctamente.",
+                schema=ProductoSerializer
+            ),
+            404: "No encontrado. El producto con el ID especificado no existe.",
+            401: "No autorizado. El token JWT no está presente o es inválido.",
+        }
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Actualizar un producto específico por su ID (requiere autenticación JWT).",
+        responses={
+            200: openapi.Response(
+                description="Producto actualizado correctamente.",
+                schema=ProductoSerializer
+            ),
+            400: "Solicitud incorrecta. Verifique los datos enviados.",
+            404: "No encontrado. El producto con el ID especificado no existe.",
+            401: "No autorizado. El token JWT no está presente o es inválido.",
+        }
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Actualizar parcialmente un producto específico por su ID (requiere autenticación JWT).",
+        responses={
+            200: openapi.Response(
+                description="Producto actualizado correctamente.",
+                schema=ProductoSerializer
+            ),
+            400: "Solicitud incorrecta. Verifique los datos enviados.",
+            404: "No encontrado. El producto con el ID especificado no existe.",
+            401: "No autorizado. El token JWT no está presente o es inválido.",
+        }
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+    
+    @swagger_auto_schema(
+        operation_description="Eliminar un producto específico por su ID (requiere autenticación JWT).",
+        responses={
+            204: "Producto eliminado correctamente.",
+            404: "No encontrado. El producto con el ID especificado no existe.",
+            401: "No autorizado. El token JWT no está presente o es inválido.",
+        }
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
