@@ -1,0 +1,30 @@
+<!-- templates/empleado_dashboard.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Empleado</title>
+</head>
+<body>
+    <h1>Bienvenido al Panel de Empleado</h1>
+    <h2>Inventarios</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Fecha de actualización</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inventario in inventarios %}
+            <tr>
+                <td>{{ inventario.producto.nombre }}</td>
+                <td>{{ inventario.cantidad }}</td>
+                <td>{{ inventario.fecha_actualizacion }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

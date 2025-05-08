@@ -1,10 +1,51 @@
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 from rest_framework import viewsets
-from .models import Producto, Categoria
-from .serializers import ProductoSerializer, CategoriaSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from .models import Producto, Categoria, Inventario
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from .serializers import ProductoSerializer, CategoriaSerializer, InventarioSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            return render(request, 'login.html', {'error': 'Credenciales inválidas'})
+    return render(request, 'login.html')
+
+@login_required
+def dashboard(request):
+    if request.user.profile.role == 'admin':
+        return redirect('admin_dashboard')
+    elif request.user.profile.role == 'employee':
+        return redirect('empleado_dashboard')
+    else:
+        return redirect('login')
+
+@login_required
+def admin_dashboard(request):
+    if request.user.profile.role != 'admin':
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+
+    productos = Producto.objects.all()
+    return render(request, 'admin_dashboard.html', {'productos': productos})
+
+
+@login_required
+def empleado_dashboard(request):
+    if request.user.profile.role != 'employee':
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+
+    inventarios = Inventario.objects.all()
+    return render(request, 'empleado_dashboard.html', {'inventarios': inventarios})
+
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
@@ -176,3 +217,8 @@ class ProductoViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+
+
+class InventariosViewSet(viewsets.ModelViewSet):
+    queryset = Inventario.objects.all()
+    serializer_class = InventarioSerializer

@@ -14,3 +14,11 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+
+class Inventario(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.cantidad}"
