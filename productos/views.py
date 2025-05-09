@@ -56,6 +56,11 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
 
+    def get_permissions(self):
+        if getattr(settings, 'TESTING', False):
+            return[AllowAny()]
+        return [IsAuthenticated()]
+    
     @swagger_auto_schema(
         operation_description="Listar todas las categorías disponibles.",
         responses={
@@ -138,7 +143,9 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if getattr(settings, 'TESTING', False):
-         return[AllowAny()]
+            return[AllowAny()]
+        return [IsAuthenticated()]
+        # return [AllowAny()]
 
     @swagger_auto_schema(
         operation_description="Listar todos los productos disponibles (requiere autenticación JWT).",
