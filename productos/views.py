@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import logout
@@ -10,6 +10,8 @@ from django.conf import settings
 from .serializers import ProductoSerializer, CategoriaSerializer, InventarioSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 def initial_view(request):
     if request.user.is_authenticated:
@@ -40,7 +42,8 @@ def admin_dashboard(request):
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
 
     productos = Producto.objects.all()
-    return render(request, 'admin_dashboard.html', {'productos': productos})
+    inventarios = Inventario.objects.select_related('producto').order_by('-fecha_actualizacion')
+    return render(request, 'admin_dashboard.html', {'productos': productos,'inventarios':inventarios})
 
 
 @login_required
@@ -48,17 +51,8 @@ def empleado_dashboard(request):
     if request.user.profile.role == 'secretary':
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
 
-    inventarios = Inventario.objects.all()
-    return render(request, 'empleado_dashboard.html', {'inventarios': inventarios})
-
-
-@login_required
-def inventario_panel(request):
-    if request.user.profile.role != 'admin':
-        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
-
-    inventarios = Inventario.objects.select_related('producto').order_by('-fecha_actualizacion')
-    return render(request, 'inventario_panel.html', {'inventarios': inventarios})
+    productos = Producto.objects.all()
+    return render(request, 'empleado_dashboard.html', {'productos': productos})
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -253,3 +247,86 @@ class InventarioViewSet(viewsets.ModelViewSet):
              if producto.stock >= inventario.cantidad:
                 producto.stock -= inventario.cantidad
         producto.save()
+
+
+@login_required
+def exportar_inventarios_pdf(request):
+    # Crear la respuesta como un archivo PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="reporte_inventarios.pdf"'
+
+    # Crear el objeto canvas de reportlab
+    p = canvas.Canvas(response, pagesize=letter)
+
+    # Configuración de fuente
+    p.setFont("Helvetica", 10)
+
+    # Título
+    p.drawString(200, 750, "Reporte de Inventarios")
+
+    # Definir columnas para el reporte
+    p.drawString(30, 730, "Tipo")
+    p.drawString(120, 730, "Producto")
+    p.drawString(300, 730, "Cantidad")
+    p.drawString(420, 730, "Fecha Actualización")
+
+    # Obtener los inventarios
+    inventarios = Inventario.objects.select_related('producto').all()
+    y = 710
+
+    for inv in inventarios:
+        p.drawString(30, y, inv.get_tipo_display())  # Tipo (Entrada/Salida)
+        p.drawString(120, y, inv.producto.nombre)  # Producto
+        p.drawString(300, y, str(inv.cantidad))  # Cantidad
+        p.drawString(420, y, inv.fecha_actualizacion.strftime("%Y-%m-%d %H:%M:%S"))  # Fecha
+        y -= 20  # Mover hacia abajo para la siguiente fila
+
+        if y < 100:  # Si llegamos al final de la página, crear una nueva
+            p.showPage()  # Crea una nueva página
+            p.setFont("Helvetica", 10)
+            y = 750  # Reiniciar la posición vertical
+
+    p.showPage()
+    p.save()
+    return response
+
+@login_required
+def exportar_productos_pdf(request):
+    # Crear la respuesta como un archivo PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="reporte_productos.pdf"'
+
+    # Crear el objeto canvas de reportlab
+    p = canvas.Canvas(response, pagesize=letter)
+
+    # Configuración de fuente
+    p.setFont("Helvetica", 10)
+
+    # Título
+    p.drawString(200, 750, "Reporte de Productos")
+
+    # Definir columnas para el reporte
+    p.drawString(30, 730, "Nombre")
+    p.drawString(200, 730, "Descripción")
+    p.drawString(420, 730, "Precio")
+    p.drawString(500, 730, "Stock")
+
+    # Obtener los productos
+    productos = Producto.objects.all()
+    y = 710
+
+    for producto in productos:
+        p.drawString(30, y, producto.nombre)  # Nombre del producto
+        p.drawString(200, y, producto.descripcion)  # Descripción
+        p.drawString(420, y, str(producto.precio))  # Precio
+        p.drawString(500, y, str(producto.stock))  # Stock
+        y -= 20  # Mover hacia abajo para la siguiente fila
+
+        if y < 100:  # Si llegamos al final de la página, crear una nueva
+            p.showPage()  # Crea una nueva página
+            p.setFont("Helvetica", 10)
+            y = 750  # Reiniciar la posición vertical
+
+    p.showPage()
+    p.save()
+    return response
