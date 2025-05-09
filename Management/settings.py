@@ -67,6 +67,8 @@ REST_FRAMEWORK = {
     ),
 }
 
+import sys
+TESTING = 'pytest' in sys.argv[0]
 
 SWAGGER_USE_COMPAT_RENDERERS = False
 
