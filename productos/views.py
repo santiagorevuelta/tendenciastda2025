@@ -12,10 +12,12 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from rest_framework.exceptions import ValidationError
 
 def initial_view(request):
     if request.user.is_authenticated:
-        return render(request, 'dashboard.html')
+        productos_bajo_stock = Producto.objects.filter(stock__lte=5)
+        return render(request, 'dashboard.html', {'productos_bajo_stock': productos_bajo_stock})
 
     return redirect('login')
 
@@ -234,19 +236,10 @@ class ProductoViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
+
 class InventarioViewSet(viewsets.ModelViewSet):
     queryset = Inventario.objects.all()
     serializer_class = InventarioSerializer
-
-    def perform_create(self, serializer):
-        inventario = serializer.save()
-        producto = inventario.producto
-        if inventario.tipo == 'entrada':
-             producto.stock += inventario.cantidad
-        elif inventario.tipo == 'salida':
-             if producto.stock >= inventario.cantidad:
-                producto.stock -= inventario.cantidad
-        producto.save()
 
 
 @login_required

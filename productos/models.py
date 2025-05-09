@@ -24,3 +24,15 @@ class Inventario(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} - {self.cantidad} - {self.tipo} - {self.fecha_actualizacion.strftime('%d-%m-%Y %H:%M')}"
+
+    def save(self, *args, **kwargs):
+        if self.pk is None:
+            if self.tipo == 'entrada':
+                self.producto.stock += self.cantidad
+            elif self.tipo == 'salida':
+                if self.producto.stock >= self.cantidad:
+                    self.producto.stock -= self.cantidad
+                else:
+                    raise ValueError("Stock insuficiente para realizar la salida.")
+            self.producto.save()
+        super().save(*args, **kwargs)
