@@ -8,6 +8,7 @@ from .serializers import ProductoSerializer, CategoriaSerializer, InventarioSeri
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -219,6 +220,16 @@ class ProductoViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-class InventariosViewSet(viewsets.ModelViewSet):
+class InventarioViewSet(viewsets.ModelViewSet):
     queryset = Inventario.objects.all()
     serializer_class = InventarioSerializer
+
+    def perform_create(self, serializer):
+        inventario = serializer.save()
+        producto = inventario.producto
+        if inventario.tipo == 'entrada':
+             producto.stock += inventario.cantidad
+        elif inventario.tipo == 'salida':
+             if producto.stock >= inventario.cantidad:
+                producto.stock -= inventario.cantidad
+        producto.save()
