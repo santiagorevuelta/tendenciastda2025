@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from django.contrib.auth import logout
 from .models import Producto, Categoria, Inventario
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
@@ -10,8 +10,17 @@ from django.conf import settings
 from .serializers import ProductoSerializer, CategoriaSerializer, InventarioSerializer
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework_simplejwt.authentication import JWTAuthentication
-import sys
+
+def initial_view(request):
+    if request.user.is_authenticated:
+        return render(request, 'dashboard.html')
+
+    return redirect('login')
+
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return redirect('login')
 
 def login_view(request):
     if request.method == 'POST':
@@ -20,19 +29,10 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('dashboard')
+            return redirect('/')
         else:
             return render(request, 'login.html', {'error': 'Credenciales inválidas'})
     return render(request, 'login.html')
-
-@login_required
-def dashboard(request):
-    if request.user.profile.role == 'admin':
-        return redirect('admin_dashboard')
-    elif request.user.profile.role == 'employee':
-        return redirect('empleado_dashboard')
-    else:
-        return redirect('login')
 
 @login_required
 def admin_dashboard(request):
@@ -45,11 +45,20 @@ def admin_dashboard(request):
 
 @login_required
 def empleado_dashboard(request):
-    if request.user.profile.role != 'employee':
+    if request.user.profile.role == 'secretary':
         return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
 
     inventarios = Inventario.objects.all()
     return render(request, 'empleado_dashboard.html', {'inventarios': inventarios})
+
+
+@login_required
+def inventario_panel(request):
+    if request.user.profile.role != 'admin':
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+
+    inventarios = Inventario.objects.select_related('producto').order_by('-fecha_actualizacion')
+    return render(request, 'inventario_panel.html', {'inventarios': inventarios})
 
 
 class CategoriaViewSet(viewsets.ModelViewSet):
