@@ -10,6 +10,7 @@ router.register('Inventarios', InventarioViewSet)
 
 urlpatterns = [
     path('', views.initial_view, name='initial'),
+    path('api/', include(router.urls)),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
