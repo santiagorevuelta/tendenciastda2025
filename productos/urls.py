@@ -9,13 +9,8 @@ router.register('categorias', CategoriaViewSet)
 router.register('inventarios', InventarioViewSet)
 
 urlpatterns = [
-<<<<<<< HEAD
     path('', include(router.urls)),
     path('inicio/', views.initial_view, name='initial'),
-=======
-    path('', views.initial_view, name='initial'),
-    path('api/', include(router.urls)),
->>>>>>> 4c9bfb71305aa8f54483bc55fda91a8a80156db2
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
