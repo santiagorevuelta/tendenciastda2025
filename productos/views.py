@@ -33,7 +33,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('/')
+            return redirect('/inicio/')
         else:
             return render(request, 'login.html', {'error': 'Credenciales inválidas'})
     return render(request, 'login.html')
@@ -309,10 +309,10 @@ def exportar_productos_pdf(request):
     y = 710
 
     for producto in productos:
-        p.drawString(30, y, producto.nombre)  # Nombre del producto
-        p.drawString(200, y, producto.descripcion)  # Descripción
-        p.drawString(420, y, str(producto.precio))  # Precio
-        p.drawString(500, y, str(producto.stock))  # Stock
+        p.drawString(30, y, str(producto.nombre or ""))  # Nombre del producto
+        p.drawString(200, y, str(producto.descripcion or ""))  # Descripción
+        p.drawString(420, y, str(producto.precio or "0"))  # Precio
+        p.drawString(500, y, str(producto.stock or "0"))  # Stock
         y -= 20  # Mover hacia abajo para la siguiente fila
 
         if y < 100:  # Si llegamos al final de la página, crear una nueva

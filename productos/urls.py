@@ -4,12 +4,13 @@ from .views import ProductoViewSet, CategoriaViewSet, InventarioViewSet
 from . import views
 
 router = routers.DefaultRouter()
-router.register('Productos', ProductoViewSet)
-router.register('Categorias', CategoriaViewSet)
-router.register('Inventarios', InventarioViewSet)
+router.register('productos', ProductoViewSet)
+router.register('categorias', CategoriaViewSet)
+router.register('inventarios', InventarioViewSet)
 
 urlpatterns = [
-    path('', views.initial_view, name='initial'),
+    path('', include(router.urls)),
+    path('inicio/', views.initial_view, name='initial'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
