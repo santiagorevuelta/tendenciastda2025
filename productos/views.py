@@ -13,6 +13,9 @@ from drf_yasg import openapi
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from rest_framework.exceptions import ValidationError
+import logging
+
+logger = logging.getLogger(__name__)
 
 def initial_view(request):
     if request.user.is_authenticated:
@@ -323,3 +326,7 @@ def exportar_productos_pdf(request):
     p.showPage()
     p.save()
     return response
+
+def mi_vista(request):
+    logger.info("Vista accedida por el usuario %s", request.user)
+    # ...código de la vista...
